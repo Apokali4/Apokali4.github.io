@@ -1,44 +1,40 @@
 <!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101014">
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#171321">
 <title>Приглашение в IQ40</title>
 <style>
-:root{color-scheme:dark;--bg:#101014;--panel:#211638;--line:#31415d;--cyan:#20d8eb;--text:#f3f2f8;--muted:#aaa6b8}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#202039 0,#101014 55%);color:var(--text);font:16px system-ui,-apple-system,sans-serif;display:grid;place-items:center;padding:22px}
-main{width:min(100%,440px);border:1px solid var(--line);border-radius:28px;background:linear-gradient(145deg,#211638f2,#171725f5);padding:28px;box-shadow:0 24px 70px #0008}
-.mark{width:64px;height:64px;border-radius:22px;background:#12364a;display:grid;place-items:center;color:var(--cyan);font-size:32px;font-weight:800}
+:root{color-scheme:dark;--bg:#171321;--panel:#241a32;--line:#514064;--purple:#a020d0;--text:#f7f1fb;--muted:#c0b3ca}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#382047 0,#171321 65%);color:var(--text);font:16px system-ui,-apple-system,sans-serif;display:grid;place-items:center;padding:22px}
+main{width:min(100%,440px);border:1px solid var(--line);border-radius:28px;background:linear-gradient(145deg,#2b2038f2,#1c1825f5);padding:28px;box-shadow:0 24px 70px #0008}
+.mark{width:64px;height:64px;border-radius:50%;border:3px solid var(--purple);display:grid;place-items:center;color:#c45be8;font-size:30px;font-weight:800}
 h1{font-size:25px;margin:22px 0 8px}p{color:var(--muted);line-height:1.5}.name{color:var(--text);font-weight:700}
-button,a.action{display:flex;width:100%;min-height:54px;align-items:center;justify-content:center;border:0;border-radius:17px;background:var(--cyan);color:#071319;text-decoration:none;font-weight:750;font-size:16px;margin-top:14px;cursor:pointer}
-a.secondary,button.secondary{background:#27324a;color:var(--text);border:1px solid #43516e}
-small{display:block;color:var(--muted);margin-top:18px;line-height:1.45}
-#error{color:#ff9c9c;display:none}
-</style>
-</head>
-<body><main>
-<div class="mark">↗</div>
-<h1>Приглашение в IQ40</h1>
-<p id="description">Вас пригласили добавить контакт локально, без регистрации и центрального сервера.</p>
-<p id="error">Ссылка приглашения повреждена или неполная.</p>
+button,a.action{display:flex;width:100%;min-height:54px;align-items:center;justify-content:center;border:0;border-radius:17px;background:var(--purple);color:white;text-decoration:none;font-weight:750;font-size:16px;margin-top:14px;cursor:pointer}
+button.secondary{background:#332740;color:var(--text);border:1px solid #665078}
+small{display:block;color:var(--muted);margin-top:18px;line-height:1.45}#error{color:#ff9caa;display:none}
+</style></head><body><main>
+<div class="mark">IQ</div><h1>Приглашение в IQ40</h1>
+<p id="description">Проверяем приглашение…</p><p id="error">Ссылка приглашения повреждена или неполная.</p>
 <a id="open" class="action" href="#">Открыть в IQ40</a>
 <button id="copy" class="secondary" type="button">Скопировать приглашение</button>
-<small>Если IQ40 ещё не установлен, сначала установите приложение. Само добавление контакта произойдёт после открытия ссылки и подтверждения в приложении.</small>
-</main>
-<script>
+<small>Для завершения сопряжения IQ40 должен быть установлен. Если приложения нет, попросите отправителя передать установочный APK. После установки откройте эту ссылку ещё раз.</small>
+</main><script>
 (()=>{
- const q=new URLSearchParams(location.search),id=q.get('id')||'',name=q.get('name')||'';
- const valid=id.length>0&&id.length<=256&&name.trim().length>0&&name.length<=80;
+ const q=new URLSearchParams(location.search),payload=q.get('payload')||'';
  const err=document.getElementById('error'),open=document.getElementById('open'),copy=document.getElementById('copy');
- if(!valid){err.style.display='block';open.hidden=true;copy.hidden=true;return}
- const deep='iq40://add?id='+encodeURIComponent(id)+'&name='+encodeURIComponent(name);
- open.href=deep;
- document.getElementById('description').innerHTML='Контакт: <span class="name"></span><br>Нажмите кнопку ниже, чтобы открыть приглашение в IQ40.';
- document.querySelector('.name').textContent=name;
+ let data=null;
+ try{
+  if(!payload.startsWith('deadnet-pair:v1:')) throw new Error();
+  const encoded=payload.slice('deadnet-pair:v1:'.length).replace(/-/g,'+').replace(/_/g,'/');
+  const bytes=Uint8Array.from(atob(encoded+'='.repeat((4-encoded.length%4)%4)),c=>c.charCodeAt(0));
+  data=JSON.parse(new TextDecoder().decode(bytes));
+  if(data.v!==1||!data.id||!data.name||!data.key||!data.fp) throw new Error();
+ }catch(_){err.style.display='block';open.hidden=true;copy.hidden=true;return}
+ const deep='iq40://pair?payload='+encodeURIComponent(payload);
+ document.getElementById('description').innerHTML='Вас приглашает <span class="name"></span>. Подтвердите сопряжение в приложении, чтобы создать защищённый контакт.';
+ document.querySelector('.name').textContent=data.name;open.href=deep;
  copy.addEventListener('click',async()=>{
-   try{await navigator.clipboard.writeText(deep);copy.textContent='Ссылка скопирована'}
-   catch(_){const t=document.createElement('textarea');t.value=deep;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();copy.textContent='Ссылка скопирована'}
+  try{await navigator.clipboard.writeText(location.href);copy.textContent='Ссылка скопирована'}
+  catch(_){const t=document.createElement('textarea');t.value=location.href;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();copy.textContent='Ссылка скопирована'}
  });
 })();
 </script></body></html>
