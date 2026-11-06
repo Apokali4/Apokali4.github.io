@@ -23,8 +23,10 @@ small{display:block;color:var(--muted);margin-top:18px;line-height:1.45}#error{c
  const err=document.getElementById('error'),open=document.getElementById('open'),copy=document.getElementById('copy');
  let data=null;
  try{
-  if(!payload.startsWith('deadnet-pair:v1:')) throw new Error();
-  const encoded=payload.slice('deadnet-pair:v1:'.length).replace(/-/g,'+').replace(/_/g,'/');
+  const prefix=payload.startsWith('deadnet-reply:v1:')?'deadnet-reply:v1:':'deadnet-pair:v1:';
+  if(!payload.startsWith(prefix)) throw new Error();
+  const raw=payload.slice(prefix.length);
+  const encoded=raw.replace(/-/g,'+').replace(/_/g,'/');
   const bytes=Uint8Array.from(atob(encoded+'='.repeat((4-encoded.length%4)%4)),c=>c.charCodeAt(0));
   data=JSON.parse(new TextDecoder().decode(bytes));
   if(data.v!==1||!data.id||!data.name||!data.key||!data.fp) throw new Error();
