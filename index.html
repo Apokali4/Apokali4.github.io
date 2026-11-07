@@ -20,8 +20,28 @@ small{display:block;color:var(--muted);margin-top:18px;line-height:1.45}#error{c
 <small>Если IQ40 уже установлен, откройте приглашение в приложении. Если нет, скачайте APK, установите приложение и вернитесь к этой странице, чтобы продолжить сопряжение.</small>
 </main><script>
 (()=>{
- const q=new URLSearchParams(location.search),payload=q.get('payload')||'';
- const err=document.getElementById('error'),open=document.getElementById('open'),copy=document.getElementById('copy');
+ const q=new URLSearchParams(location.search);
+ const payload=q.get('payload')||'';
+ const id=(q.get('id')||'').trim();
+ const name=(q.get('name')||'').trim();
+ const err=document.getElementById('error');
+ const open=document.getElementById('open');
+ const copy=document.getElementById('copy');
+ const description=document.getElementById('description');
+ const download=document.querySelector('a.secondary');
+ let deep='';
+ if(id && name && id.length<=256 && name.length<=80){
+   deep='iq40://add?id='+encodeURIComponent(id)+'&name='+encodeURIComponent(name);
+   description.textContent='Вас приглашает '+name+'. Нажмите «Открыть в IQ40», чтобы сохранить контакт локально на телефоне.';
+   open.href=deep;
+   copy.addEventListener('click',async()=>{
+     try{await navigator.clipboard.writeText(location.href);copy.textContent='Ссылка скопирована'}
+     catch(_){const t=document.createElement('textarea');t.value=location.href;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();copy.textContent='Ссылка скопирована'}
+   });
+   download.href='https://github.com/Apokali4/DeadNet/releases';
+   download.textContent='Открыть загрузки IQ40';
+   return;
+ }
  let data=null;
  try{
   const prefix=payload.startsWith('deadnet-reply:v1:')?'deadnet-reply:v1:':'deadnet-pair:v1:';
@@ -29,13 +49,21 @@ small{display:block;color:var(--muted);margin-top:18px;line-height:1.45}#error{c
   const raw=payload.slice(prefix.length);
   const nested=raw.startsWith('deadnet-pair:v1:')?raw.slice('deadnet-pair:v1:'.length):raw;
   const encoded=nested.replace(/-/g,'+').replace(/_/g,'/');
-  const bytes=Uint8Array.from(atob(encoded+'='.repeat((4-encoded.length%4)%4)),c=>c.charCodeAt(0));
+  const bytes=Uint8Array.from(atob(encoded+'='.repeat((4-encoded.length%4)%4)),x=>x.charCodeAt(0));
   data=JSON.parse(new TextDecoder().decode(bytes));
   if(data.v!==1||!data.id||!data.name||!data.key||!data.fp) throw new Error();
- }catch(_){err.style.display='block';open.hidden=true;copy.hidden=true;return}
- const deep='iq40://pair?payload='+encodeURIComponent(payload);
- document.getElementById('description').innerHTML='Вас приглашает <span class="name"></span>. Подтвердите сопряжение в приложении, чтобы создать защищённый контакт.';
- document.querySelector('.name').textContent=data.name;open.href=deep;
+ }catch(_){
+  err.style.display='block';open.hidden=true;copy.hidden=true;
+  description.textContent='В ссылке нет корректных данных приглашения. Попросите отправителя создать новую ссылку.';
+  download.href='https://github.com/Apokali4/DeadNet/releases';
+  download.textContent='Открыть загрузки IQ40';
+  return;
+ }
+ deep='iq40://pair?payload='+encodeURIComponent(payload);
+ description.textContent='Вас приглашает '+data.name+'. Подтвердите сопряжение в приложении, чтобы создать защищённый контакт.';
+ open.href=deep;
+ download.href='https://github.com/Apokali4/DeadNet/releases';
+ download.textContent='Открыть загрузки IQ40';
  copy.addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(location.href);copy.textContent='Ссылка скопирована'}
   catch(_){const t=document.createElement('textarea');t.value=location.href;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();copy.textContent='Ссылка скопирована'}
