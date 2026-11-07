@@ -1,72 +1,79 @@
 <!doctype html>
-<html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#171321">
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#171321">
 <title>Приглашение в IQ40</title>
 <style>
-:root{color-scheme:dark;--bg:#171321;--panel:#241a32;--line:#514064;--purple:#a020d0;--text:#f7f1fb;--muted:#c0b3ca}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#382047 0,#171321 65%);color:var(--text);font:16px system-ui,-apple-system,sans-serif;display:grid;place-items:center;padding:22px}
+:root{color-scheme:dark;--bg:#171321;--panel:#241a32;--line:#514064;--purple:#a020d0;--text:#f7f1fb;--muted:#c0b3ca;--error:#ff9caa}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#382047 0,#171321 65%);color:var(--text);font:16px system-ui,-apple-system,sans-serif;display:grid;place-items:center;padding:22px}
 main{width:min(100%,440px);border:1px solid var(--line);border-radius:28px;background:linear-gradient(145deg,#2b2038f2,#1c1825f5);padding:28px;box-shadow:0 24px 70px #0008}
 .mark{width:64px;height:64px;border-radius:50%;border:3px solid var(--purple);display:grid;place-items:center;color:#c45be8;font-size:30px;font-weight:800}
-h1{font-size:25px;margin:22px 0 8px}p{color:var(--muted);line-height:1.5}.name{color:var(--text);font-weight:700}
-button,a.action{display:flex;width:100%;min-height:54px;align-items:center;justify-content:center;border:0;border-radius:17px;background:var(--purple);color:white;text-decoration:none;font-weight:750;font-size:16px;margin-top:14px;cursor:pointer}
-button.secondary{background:#332740;color:var(--text);border:1px solid #665078}
-small{display:block;color:var(--muted);margin-top:18px;line-height:1.45}#error{color:#ff9caa;display:none}
-</style></head><body><main>
-<div class="mark">IQ</div><h1>Приглашение в IQ40</h1>
-<p id="description">Проверяем приглашение…</p><p id="error">Ссылка приглашения повреждена или неполная.</p>
-<a id="open" class="action" href="#">Открыть в IQ40</a>
-<a class="action secondary" href="https://github.com/Apokali4/DeadNet/releases/latest/download/IQ40.apk">Скачать IQ40 APK</a>
-<button id="copy" class="secondary" type="button">Скопировать приглашение</button>
-<small>Если IQ40 уже установлен, откройте приглашение в приложении. Если нет, скачайте APK, установите приложение и вернитесь к этой странице, чтобы продолжить сопряжение.</small>
-</main><script>
-(()=>{
- const q=new URLSearchParams(location.search);
- const payload=q.get('payload')||'';
- const id=(q.get('id')||'').trim();
- const name=(q.get('name')||'').trim();
- const err=document.getElementById('error');
- const open=document.getElementById('open');
- const copy=document.getElementById('copy');
- const description=document.getElementById('description');
- const download=document.querySelector('a.secondary');
- let deep='';
- if(id && name && id.length<=256 && name.length<=80){
-   deep='iq40://add?id='+encodeURIComponent(id)+'&name='+encodeURIComponent(name);
-   description.textContent='Вас приглашает '+name+'. Нажмите «Открыть в IQ40», чтобы сохранить контакт локально на телефоне.';
-   open.href=deep;
-   copy.addEventListener('click',async()=>{
-     try{await navigator.clipboard.writeText(location.href);copy.textContent='Ссылка скопирована'}
-     catch(_){const t=document.createElement('textarea');t.value=location.href;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();copy.textContent='Ссылка скопирована'}
-   });
-   download.href='https://github.com/Apokali4/DeadNet/releases';
-   download.textContent='Открыть загрузки IQ40';
-   return;
- }
- let data=null;
- try{
-  const prefix=payload.startsWith('deadnet-reply:v1:')?'deadnet-reply:v1:':'deadnet-pair:v1:';
-  if(!payload.startsWith(prefix)) throw new Error();
-  const raw=payload.slice(prefix.length);
-  const nested=raw.startsWith('deadnet-pair:v1:')?raw.slice('deadnet-pair:v1:'.length):raw;
-  const encoded=nested.replace(/-/g,'+').replace(/_/g,'/');
-  const bytes=Uint8Array.from(atob(encoded+'='.repeat((4-encoded.length%4)%4)),x=>x.charCodeAt(0));
-  data=JSON.parse(new TextDecoder().decode(bytes));
-  if(data.v!==1||!data.id||!data.name||!data.key||!data.fp) throw new Error();
- }catch(_){
-  err.style.display='block';open.hidden=true;copy.hidden=true;
-  description.textContent='В ссылке нет корректных данных приглашения. Попросите отправителя создать новую ссылку.';
-  download.href='https://github.com/Apokali4/DeadNet/releases';
-  download.textContent='Открыть загрузки IQ40';
-  return;
- }
- deep='iq40://pair?payload='+encodeURIComponent(payload);
- description.textContent='Вас приглашает '+data.name+'. Подтвердите сопряжение в приложении, чтобы создать защищённый контакт.';
- open.href=deep;
- download.href='https://github.com/Apokali4/DeadNet/releases';
- download.textContent='Открыть загрузки IQ40';
- copy.addEventListener('click',async()=>{
-  try{await navigator.clipboard.writeText(location.href);copy.textContent='Ссылка скопирована'}
-  catch(_){const t=document.createElement('textarea');t.value=location.href;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();copy.textContent='Ссылка скопирована'}
- });
+h1{font-size:25px;margin:22px 0 8px}
+p{color:var(--muted);line-height:1.5}
+#message.error{color:var(--error)}
+button{display:flex;width:100%;min-height:58px;align-items:center;justify-content:center;border:0;border-radius:17px;background:var(--purple);color:white;font-weight:750;font-size:17px;margin-top:22px;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+small{display:block;color:var(--muted);margin-top:18px;line-height:1.45}
+</style>
+</head>
+<body>
+<main>
+<div class="mark">IQ</div>
+<h1>Приглашение в IQ40</h1>
+<p id="message">Проверяем приглашение…</p>
+<button id="confirm" type="button" disabled>Подтвердить ссылку</button>
+<small id="hint">После подтверждения IQ40 откроет приложение, обменяется открытыми ключами и добавит контакт в диалог.</small>
+</main>
+<script>
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  const payload = params.get("payload") || "";
+  const message = document.getElementById("message");
+  const button = document.getElementById("confirm");
+  const hint = document.getElementById("hint");
+  let valid = false;
+  let displayName = "";
+
+  try {
+    const prefix = "deadnet-pair:v2:";
+    if (!payload.startsWith(prefix)) throw new Error("Формат приглашения не поддерживается.");
+    const encoded = payload.slice(prefix.length);
+    if (!encoded || encoded.length > 8192) throw new Error("Приглашение повреждено или обрезано.");
+    const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const bytes = Uint8Array.from(atob(normalized + "=".repeat((4 - normalized.length % 4) % 4)), c => c.charCodeAt(0));
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    if (data.v !== 2 || typeof data.id !== "string" || !data.id ||
+        typeof data.name !== "string" || !data.name ||
+        typeof data.key !== "string" || !data.key ||
+        typeof data.fp !== "string" || !data.fp ||
+        typeof data.nonce !== "string" || !data.nonce ||
+        typeof data.iat !== "number" || typeof data.exp !== "number") {
+      throw new Error("В приглашении отсутствуют обязательные данные.");
+    }
+    if (data.exp <= Date.now() || data.exp - data.iat !== 180000) {
+      throw new Error("Срок действия приглашения истёк. Попросите отправителя создать новую ссылку.");
+    }
+    displayName = data.name;
+    valid = true;
+    message.textContent = "Вас приглашает " + displayName + ". Нажмите единственную кнопку, чтобы подтвердить контакт в IQ40.";
+    button.disabled = false;
+  } catch (error) {
+    message.classList.add("error");
+    message.textContent = error && error.message ? error.message : "Ссылка приглашения повреждена или неполная. Попросите отправителя создать новую.";
+    button.disabled = true;
+    hint.textContent = "IQ40 не получил полные данные приглашения. Повторно создайте ссылку в приложении отправителя.";
+  }
+
+  button.addEventListener("click", () => {
+    if (!valid) return;
+    const deepLink = "iq40://pair?payload=" + encodeURIComponent(payload);
+    window.location.href = deepLink;
+    message.textContent = "Открываем IQ40 для подтверждения контакта…";
+  });
 })();
-</script></body></html>
+</script>
+</body>
+</html>
