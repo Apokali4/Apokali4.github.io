@@ -12,6 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,10 +58,13 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
     }
     when(tab) {
      "Главная" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-      Column(Modifier.fillMaxWidth().background(Dark,RoundedCornerShape(22.dp)).padding(20.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
-       Text("Пять минут —\nи ты знаешь больше!",color=Color.White,fontSize=26.sp,fontWeight=FontWeight.Black,lineHeight=30.sp)
-       Text("Короткие задания по фармакологии без скучной зубрёжки.",color=Color(0xFFE3D8F8))
-       Button(onClick={tab="Играть";mode=true;qi=0;selected=-1;answered=false},colors=ButtonDefaults.buttonColors(containerColor=Mint)){Text("Начать игру →")}
+      Row(Modifier.fillMaxWidth().background(Dark,RoundedCornerShape(22.dp)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
+       Image(painterResource(R.drawable.pharmacist),contentDescription="Фармацевт-помощник",modifier=Modifier.width(116.dp).height(178.dp),contentScale=ContentScale.Crop)
+       Column(Modifier.weight(1f).padding(8.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
+        Text("Пять минут —\nи ты знаешь больше!",color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,lineHeight=27.sp)
+        Text("Карточки, вопросы и понятные объяснения.",color=Color(0xFFE3D8F8),fontSize=13.sp)
+        Button(onClick={tab="Играть";mode=true;qi=0;selected=-1;answered=false},colors=ButtonDefaults.buttonColors(containerColor=Mint)){Text("Начать игру →")}
+       }
       }
       Text("Чем займёмся?",fontSize=21.sp,fontWeight=FontWeight.Bold)
       Tile("▤","Карточки","Переворачивай и запоминай",Color(0xFFEDE4FF)){tab="Карточки"}
