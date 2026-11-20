@@ -32,10 +32,55 @@ private val Pale = KenneyPalette.purpleSoft
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val lessons = JSONArray(assets.open("lessons.json").bufferedReader().use { it.readText() })
-        val practice = JSONArray(assets.open("practice.json").bufferedReader().use { it.readText() })
-        val syllabus = JSONObject(assets.open("syllabus.json").bufferedReader().use { it.readText() })
-        setContent { LearningApp(lessons, practice, syllabus) }
+
+        val startup = runCatching {
+            val lessons = JSONArray(assets.open("lessons.json").bufferedReader(Charsets.UTF_8).use { it.readText() })
+            val practice = JSONArray(assets.open("practice.json").bufferedReader(Charsets.UTF_8).use { it.readText() })
+            val syllabus = JSONObject(assets.open("syllabus.json").bufferedReader(Charsets.UTF_8).use { it.readText() })
+            Triple(lessons, practice, syllabus)
+        }
+
+        setContent {
+            startup.fold(
+                onSuccess = { data ->
+                    try {
+                        LearningApp(data.first, data.second, data.third)
+                    } catch (error: Exception) {
+                        android.util.Log.e("AptekaStartup", "First screen composition failed", error)
+                        StartupFailure(error)
+                    }
+                },
+                onFailure = { error ->
+                    android.util.Log.e("AptekaStartup", "Startup content loading failed", error)
+                    StartupFailure(error)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun StartupFailure(error: Throwable) {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color(0xFFF4F0F8)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Не удалось запустить приложение", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF392653))
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    error.localizedMessage ?: error.javaClass.simpleName,
+                    color = Color(0xFF766D82)
+                )
+                Spacer(Modifier.height(12.dp))
+                Text("Код ошибки записан в журнал Android: AptekaStartup", color = Color(0xFF766D82), fontSize = 12.sp)
+            }
+        }
     }
 }
 
