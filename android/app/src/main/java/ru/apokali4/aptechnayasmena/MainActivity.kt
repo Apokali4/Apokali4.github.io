@@ -61,6 +61,10 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
     var visitorChoice by remember { mutableIntStateOf(-1) }
     var visitorFeedback by remember { mutableStateOf("") }
     var search by remember { mutableStateOf("") }
+    var playerX by remember { mutableIntStateOf(0) }
+    var playerY by remember { mutableIntStateOf(1) }
+    var zone by remember { mutableStateOf("Торговый зал") }
+    var selectedDrugId by remember { mutableStateOf("") }
 
     fun persist() {
         prefs.edit().putInt("xp", xp).putInt("correct", correct).putInt("wrong", wrong)
@@ -84,9 +88,9 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
     MaterialTheme(colorScheme = lightColorScheme(primary = Green, background = Paper, surface = Color.White, onSurface = Ink)) {
         Scaffold(containerColor = Paper, bottomBar = {
             NavigationBar(containerColor = Color.White) {
-                listOf("Смена", "Академия", "Практика", "Экзамен").forEach { item ->
+                listOf("Смена", "Препараты", "Академия", "Практика", "Экзамен").forEach { item ->
                     NavigationBarItem(selected = tab == item, onClick = { tab = item; selected = -1; feedback = "" },
-                        icon = { Text(when(item){"Смена"->"☀";"Академия"->"▤";"Практика"->"✚";else->"✓"}, fontSize=18.sp) },
+                        icon = { Text(when(item){"Смена"->"☀";"Препараты"->"✚";"Академия"->"▤";"Практика"->"▣";else->"✓"}, fontSize=18.sp) },
                         label = { Text(item) })
                 }
             }
@@ -105,6 +109,20 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
                 when(tab) {
                     "Смена" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement=Arrangement.spacedBy(14.dp)) {
                         Header("Твоя смена начинается", "Четыре посетителя. Четыре решения. Без угадывания диагнозов.")
+                        Panel {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Text("🏪 $zone", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { zone = if (zone == "Торговый зал") "Подсобка" else "Торговый зал"; playerX = 0; playerY = 1 }) { Text("Перейти ↔") }
+                            }
+                            PharmacyMap(playerX, playerY, zone, visitorIndex)
+                            Text("Передвигайся по аптеке кнопками. Чтобы заговорить с посетителем, подойди к его маркеру.", color = Muted, fontSize = 12.sp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                ActionButton("←", playerX > 0, Modifier.weight(1f)) { playerX = (playerX - 1).coerceAtLeast(0) }
+                                ActionButton("↑", playerY > 0, Modifier.weight(1f)) { playerY = (playerY - 1).coerceAtLeast(0) }
+                                ActionButton("↓", playerY < 1, Modifier.weight(1f)) { playerY = (playerY + 1).coerceAtMost(1) }
+                                ActionButton("→", playerX < 4, Modifier.weight(1f)) { playerX = (playerX + 1).coerceAtMost(4) }
+                            }
+                        }
                         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                             Stat("${studied.size}/72", "тем изучено", Modifier.weight(1f))
                             Stat("$correct", "верных ответов", Modifier.weight(1f))
@@ -114,7 +132,7 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
                             Text("ЕЛЕНА · СТАРШИЙ ФАРМАЦЕВТ", color=Green, fontWeight=FontWeight.Bold, fontSize=12.sp)
                             Text("«Выслушай посетителя, обрати внимание на опасные признаки. Не ставь диагноз и не угадывай препарат. Если сомневаешься, позови меня»", color=Ink)
                         }
-                        if (visitorIndex < visitors.size) {
+                        if (visitorIndex < visitors.size && zone == "Торговый зал" && kotlin.math.abs(playerX - (visitorIndex + 1)) <= 1 && playerY == 0) {
                             val (visitor, answer) = visitors[visitorIndex]
                             Panel {
                                 Text("ПОСЕТИТЕЛЬ ${visitorIndex+1} ИЗ 4", color=Green, fontWeight=FontWeight.Bold, fontSize=12.sp)
@@ -133,7 +151,7 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
                                     }
                                 }
                             }
-                        } else Panel {
+                        } else if (visitorIndex >= visitors.size) Panel {
                             Text("Первая смена завершена!", fontSize=22.sp, fontWeight=FontWeight.Bold)
                             Text("Все четыре ситуации разобраны. Повтори темы в Академии или закрепи знания практикой.")
                             ActionButton("Пройти смену ещё раз", true) { visitorIndex=0; visitorChoice=-1; visitorFeedback=""; persist() }
@@ -142,6 +160,34 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
                             Text("Аптека", fontWeight=FontWeight.Bold, fontSize=18.sp)
                             Text("Торговый зал  ·  Подсобка")
                             Text("Учебная карта помещений. Реальные складские и отпускные операции в игре не моделируются.", color=Muted, fontSize=13.sp)
+                        }
+                    }
+                    "Препараты" -> {
+                        val selectedDrug = drugCatalog.firstOrNull { it.id == selectedDrugId }
+                        if (selectedDrug != null) Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            ActionButton("← К каталогу", true) { selectedDrugId = "" }
+                            Header(selectedDrug.name, selectedDrug.inn)
+                            DrugSection("Описание", selectedDrug.description)
+                            DrugSection("Фармакотерапевтическая группа", selectedDrug.group)
+                            DrugSection("Показания", selectedDrug.indications)
+                            DrugSection("Противопоказания", selectedDrug.contraindications)
+                            DrugSection("Побочные эффекты", selectedDrug.adverseEffects)
+                            DrugSection("Фармакодинамика", selectedDrug.pharmacodynamics)
+                            DrugSection("Фармакокинетика", selectedDrug.pharmacokinetics)
+                            DrugSection("Лекарственные формы", selectedDrug.forms)
+                            Panel { Text("ИСТОЧНИК", color = Green, fontWeight = FontWeight.Bold); Text(selectedDrug.source); Text(selectedDrug.sourceUrl, color = Green, fontSize = 12.sp) }
+                            Text("Учебное краткое описание. Сведения зависят от производителя и формы выпуска. Перед применением сверяйся с актуальной официальной инструкцией.", color = Muted, fontSize = 12.sp)
+                        } else Column(Modifier.fillMaxSize().padding(18.dp)) {
+                            Header("Справочник препаратов", "Карточки с фармакологией и источниками. База будет расширяться проверенными монографиями.")
+                            OutlinedTextField(search, { search = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Найти препарат или МНН") }, singleLine = true)
+                            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(drugCatalog.filter { (it.name + " " + it.inn).contains(search, true) }) { drug ->
+                                    Row(Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(14.dp)).clickable { selectedDrugId = drug.id }.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Column(Modifier.weight(1f)) { Text(drug.name, fontWeight = FontWeight.Bold, color = Ink, fontSize = 17.sp); Text(drug.group, color = Muted, fontSize = 12.sp) }
+                                        Text("›", color = Green, fontSize = 24.sp)
+                                    }
+                                }
+                            }
                         }
                     }
                     "Академия" -> {
@@ -251,6 +297,32 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
     }
 }
 
+@Composable private fun PharmacyMap(playerX: Int, playerY: Int, zone: String, visitorIndex: Int) {
+    Column(Modifier.fillMaxWidth().background(Color(0xFFE5EEE5), RoundedCornerShape(14.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        if (zone == "Торговый зал") {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("СТЕЛЛАЖИ", color = Muted, fontSize = 10.sp); Text("КАССА", color = Muted, fontSize = 10.sp) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { repeat(5) { Text("▥", color = Color(0xFF9B795B), fontSize = 24.sp) } }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { repeat(5) { i ->
+                val active = playerX == i && playerY == 0
+                val client = i in 1..4 && visitorIndex == i - 1
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                    Text(if (client) listOf("👩🏻‍👦", "🧔🏻", "😰", "👵🏻")[i - 1] else if (active) "🧑" else "·", fontSize = 22.sp)
+                    Text(if (active) "ТЫ" else if (client) "КЛИЕНТ" else "", fontSize = 8.sp, color = Green, fontWeight = FontWeight.Bold)
+                }
+            } }
+            Text("ВХОД · ТОРГОВЫЙ ЗАЛ", color = Muted, fontSize = 10.sp)
+        } else {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) { Text("📦\nСтеллажи"); Text("🗃️\nПриёмка"); Text("🧾\nУчёт") }
+            Text("🧑 Ты в подсобке", color = Green, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+@Composable private fun DrugSection(title: String, body: String) {
+    Column(Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(16.dp)).padding(15.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(title.uppercase(), color = Green, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Text(body, color = Ink, lineHeight = 21.sp)
+    }
+}
 @Composable private fun Header(title:String, subtitle:String) { Column(verticalArrangement=Arrangement.spacedBy(5.dp)){Text(title,fontSize=25.sp,fontWeight=FontWeight.Black,color=Ink,lineHeight=29.sp);Text(subtitle,color=Muted,fontSize=14.sp,lineHeight=20.sp)} }
 @Composable private fun Stat(value:String,label:String,modifier:Modifier=Modifier) { Column(modifier.background(Color.White,RoundedCornerShape(15.dp)).padding(12.dp)){Text(value,fontSize=22.sp,fontWeight=FontWeight.Bold,color=Green);Text(label,fontSize=11.sp,color=Muted)} }
 @Composable private fun Panel(content:@Composable ColumnScope.()->Unit) { Column(Modifier.fillMaxWidth().background(Color.White,RoundedCornerShape(18.dp)).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp),content=content) }
