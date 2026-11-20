@@ -23,11 +23,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.random.Random
 
-private val Ink = Color(0xFF24302D)
-private val Muted = Color(0xFF697873)
-private val Paper = Color(0xFFF4F2EA)
-private val Green = Color(0xFF527C68)
-private val Pale = Color(0xFFE4EDE5)
+private val Ink = KenneyPalette.ink
+private val Muted = KenneyPalette.muted
+private val Paper = KenneyPalette.background
+private val Green = KenneyPalette.purple
+private val Pale = KenneyPalette.purpleSoft
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,12 +85,12 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
         )
     }
 
-    MaterialTheme(colorScheme = lightColorScheme(primary = Green, background = Paper, surface = Color.White, onSurface = Ink)) {
+    MaterialTheme(colorScheme = lightColorScheme(primary = Green, secondary = KenneyPalette.mint, background = Paper, surface = Color.White, onSurface = Ink)) {
         Scaffold(containerColor = Paper, bottomBar = {
             NavigationBar(containerColor = Color.White) {
                 listOf("Смена", "Препараты", "Академия", "Практика", "Экзамен").forEach { item ->
                     NavigationBarItem(selected = tab == item, onClick = { tab = item; selected = -1; feedback = "" },
-                        icon = { Text(when(item){"Смена"->"☀";"Препараты"->"✚";"Академия"->"▤";"Практика"->"▣";else->"✓"}, fontSize=18.sp) },
+                        icon = { KenneyNavIcon(when(item){"Смена"->"☀";"Препараты"->"✚";"Академия"->"▤";"Практика"->"▣";else->"✓"}, tab == item) },
                         label = { Text(item) })
                 }
             }
@@ -299,7 +299,7 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
 }
 
 @Composable private fun PharmacyMap(playerX: Int, playerY: Int, zone: String, visitorIndex: Int) {
-    Column(Modifier.fillMaxWidth().background(Color(0xFFE5EEE5), RoundedCornerShape(14.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+    KenneyPanel(modifier = Modifier.fillMaxWidth(), tint = Color(0xFFECE5F4), contentPadding = PaddingValues(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         if (zone == "Торговый зал") {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("СТЕЛЛАЖИ", color = Muted, fontSize = 10.sp); Text("КАССА", color = Muted, fontSize = 10.sp) }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { repeat(5) { Text("▥", color = Color(0xFF9B795B), fontSize = 24.sp) } }
@@ -324,8 +324,8 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
         Text(body, color = Ink, lineHeight = 21.sp)
     }
 }
-@Composable private fun Header(title:String, subtitle:String) { Column(verticalArrangement=Arrangement.spacedBy(5.dp)){Text(title,fontSize=25.sp,fontWeight=FontWeight.Black,color=Ink,lineHeight=29.sp);Text(subtitle,color=Muted,fontSize=14.sp,lineHeight=20.sp)} }
-@Composable private fun Stat(value:String,label:String,modifier:Modifier=Modifier) { Column(modifier.background(Color.White,RoundedCornerShape(15.dp)).padding(12.dp)){Text(value,fontSize=22.sp,fontWeight=FontWeight.Bold,color=Green);Text(label,fontSize=11.sp,color=Muted)} }
-@Composable private fun Panel(content:@Composable ColumnScope.()->Unit) { Column(Modifier.fillMaxWidth().background(Color.White,RoundedCornerShape(18.dp)).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp),content=content) }
-@Composable private fun Choice(label:String,selected:Boolean,disabled:Boolean,onClick:()->Unit) { Row(Modifier.fillMaxWidth().background(if(selected)Pale else Color(0xFFF6F7F4),RoundedCornerShape(12.dp)).clickable(enabled=!disabled,onClick=onClick).padding(12.dp),verticalAlignment=Alignment.CenterVertically){RadioButton(selected,onClick,enabled=!disabled,colors=RadioButtonDefaults.colors(selectedColor=Green));Text(label,Modifier.padding(start=8.dp),color=Ink,fontSize=14.sp,lineHeight=19.sp)} }
-@Composable private fun ActionButton(label:String,enabled:Boolean,modifier:Modifier=Modifier,onClick:()->Unit) { Button(onClick=onClick,enabled=enabled,modifier=modifier.fillMaxWidth().heightIn(min=48.dp),shape=RoundedCornerShape(13.dp),colors=ButtonDefaults.buttonColors(containerColor=Green)){Text(label,fontWeight=FontWeight.Bold)} }
+@Composable private fun Header(title:String, subtitle:String) { Column(verticalArrangement=Arrangement.spacedBy(5.dp)){Text(title,fontSize=25.sp,fontWeight=FontWeight.Black,color=KenneyPalette.purpleDark,lineHeight=29.sp);Text(subtitle,color=Muted,fontSize=14.sp,lineHeight=20.sp)} }
+@Composable private fun Stat(value:String,label:String,modifier:Modifier=Modifier) { KenneyPanel(modifier=modifier,contentPadding=PaddingValues(12.dp),verticalArrangement=Arrangement.spacedBy(3.dp)){Text(value,fontSize=22.sp,fontWeight=FontWeight.Bold,color=Green);Text(label,fontSize=11.sp,color=Muted)} }
+@Composable private fun Panel(content:@Composable ColumnScope.()->Unit) { KenneyPanel(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp),content=content) }
+@Composable private fun Choice(label:String,selected:Boolean,disabled:Boolean,onClick:()->Unit) { KenneyChoice(label,selected,enabled=!disabled,onClick=onClick) }
+@Composable private fun ActionButton(label:String,enabled:Boolean,modifier:Modifier=Modifier,onClick:()->Unit) { KenneyButton(label,enabled=enabled,modifier=modifier,onClick=onClick) }
