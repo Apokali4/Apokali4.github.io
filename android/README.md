@@ -5,3 +5,5 @@ APK собирается в GitHub Actions. Веб-ресурсы игры уп�
 Сборка: `gradle assembleDebug`. Результат: `app/build/outputs/apk/debug/app-debug.apk`.
 
 SDK setup uses explicit Android 35 platform and build-tools packages in CI.
+
+Build configuration updated for matching Java/Kotlin 17 bytecode targets.
