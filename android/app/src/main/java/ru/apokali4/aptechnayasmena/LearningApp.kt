@@ -57,19 +57,23 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
    }
   }) { pad ->
    Column(Modifier.fillMaxSize().padding(pad)) {
-    KenneyPanel(modifier=Modifier.fillMaxWidth(),tint=Dark,contentPadding=PaddingValues(14.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {\n    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+    KenneyPanel(modifier=Modifier.fillMaxWidth(),tint=Dark,contentPadding=PaddingValues(14.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
      Column(Modifier.weight(1f)) { Text("АПТЕКА ЗНАНИЙ",color=Color.White,fontWeight=FontWeight.Black,letterSpacing=1.2.sp); Text("Учись, играй, запоминай",color=Color(0xFFD9C9F5),fontSize=12.sp) }
      Image(painterResource(R.drawable.pharmacist),contentDescription="Помощник",modifier=Modifier.size(46.dp),contentScale=ContentScale.Crop)
     }
+    }
     when(tab) {
      "Главная" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-      KenneyPanel(modifier=Modifier.fillMaxWidth(),tint=Dark,contentPadding=PaddingValues(12.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {\n       Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+      KenneyPanel(modifier=Modifier.fillMaxWidth(),tint=Dark,contentPadding=PaddingValues(12.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {
+       Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
        Image(painterResource(R.drawable.pharmacist),contentDescription="Фармацевт-помощник",modifier=Modifier.width(116.dp).height(178.dp),contentScale=ContentScale.Crop)
        Column(Modifier.weight(1f).padding(8.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
         Text("Пять минут —\nи ты знаешь больше!",color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,lineHeight=27.sp)
         Text("Карточки, вопросы и понятные объяснения.",color=Color(0xFFE3D8F8),fontSize=13.sp)
         KenneyButton("Начать игру →",onClick={tab="Играть";mode=true;qi=0;selected=-1;answered=false})
        }
+      }
       }
       Text("Чем займёмся?",fontSize=21.sp,fontWeight=FontWeight.Bold)
       Tile("▤","Карточки","Переворачивай и запоминай",Color(0xFFEDE4FF)){tab="Карточки"}
