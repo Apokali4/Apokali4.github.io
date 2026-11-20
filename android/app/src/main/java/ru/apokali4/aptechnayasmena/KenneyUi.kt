@@ -51,7 +51,7 @@ fun KenneyPanel(
             colorFilter = ColorFilter.tint(tint, BlendMode.Modulate)
         )
         Column(
-            modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(contentPadding),
+            modifier = Modifier.fillMaxWidth().then(if (fillContentHeight) Modifier.fillMaxHeight() else Modifier).padding(contentPadding),
             verticalArrangement = verticalArrangement,
             horizontalAlignment = horizontalAlignment,
             content = content
