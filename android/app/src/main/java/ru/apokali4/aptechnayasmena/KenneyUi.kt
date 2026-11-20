@@ -40,6 +40,7 @@ fun KenneyPanel(
     contentPadding: PaddingValues = PaddingValues(16.dp),
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(10.dp),
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
+    fillContentHeight: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Box(modifier = modifier) {
