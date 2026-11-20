@@ -36,6 +36,10 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
  var answered by remember { mutableStateOf(false) }
  var search by remember { mutableStateOf("") }
  var drug by remember { mutableStateOf<DrugMonograph?>(null) }
+ var topicIndex by remember { mutableIntStateOf(-1) }
+ var practiceIndex by remember { mutableIntStateOf(-1) }
+ var practiceAnswer by remember { mutableIntStateOf(-1) }
+ var practiceChecked by remember { mutableStateOf(false) }
  val topics = remember { syllabus.optJSONArray("theory") ?: JSONArray() }
  val qs = listOf(
   Triple("К какой группе относится ибупрофен?", listOf("Антибиотики","НПВП","Антигистаминные"), 1) to "Ибупрофен — нестероидный противовоспалительный препарат. Он ингибирует ЦОГ и снижает синтез простагландинов.",
@@ -47,8 +51,8 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
  MaterialTheme(colorScheme = lightColorScheme(primary=Purple,secondary=Mint,background=Bg,surface=Color.White,onSurface=Dark)) {
   Scaffold(containerColor=Bg,bottomBar={
    NavigationBar(containerColor=Color.White) {
-    listOf("Главная","Карточки","Играть","Препараты","Темы").forEach { t ->
-     NavigationBarItem(selected=tab==t,onClick={tab=t;drug=null;mode=false},icon={Text(when(t){"Главная"->"⌂";"Карточки"->"▤";"Играть"->"✦";"Препараты"->"✚";else->"☷"},fontSize=19.sp)},label={Text(t,fontSize=10.sp)})
+    listOf("Главная","Карточки","Играть","Препараты","Темы","Практика").forEach { t ->
+     NavigationBarItem(selected=tab==t,onClick={tab=t;drug=null;mode=false;topicIndex=-1;practiceIndex=-1},icon={Text(when(t){"Главная"->"⌂";"Карточки"->"▤";"Играть"->"✦";"Препараты"->"✚";"Темы"->"☷";else->"✎"},fontSize=19.sp)},label={Text(t,fontSize=10.sp)})
     }
    }
   }) { pad ->
@@ -72,6 +76,7 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
       Tile("✦","Играть","Викторины и правда или миф",Color(0xFFE0F5EF)){tab="Играть"}
       Tile("✚","Препараты","Понятные карточки лекарств",Color(0xFFFFEBD9)){tab="Препараты"}
       Tile("☷","Предметы","Фармакология и другие темы",Color(0xFFE2EDFF)){tab="Темы"}
+      Tile("✎","Практика","Задания на лекарственные формы",Color(0xFFFFEBD9)){tab="Практика"}
      }
      "Карточки" -> Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
       Heading("Карточки","Нажми на карточку, чтобы увидеть ответ")
@@ -128,9 +133,44 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
       OutlinedTextField(search,{search=it},modifier=Modifier.fillMaxWidth(),placeholder={Text("Поиск препарата")},singleLine=true)
       LazyColumn(verticalArrangement=Arrangement.spacedBy(8.dp)){items(drugCatalog.filter{(it.name+it.inn).contains(search,true)}){d->Tile("✚",d.name,d.group,Color.White){drug=d}}}
      }
-     else -> Column(Modifier.fillMaxSize().padding(16.dp)) {
-      Heading("Предметы","Выбирай тему и изучай небольшими порциями")
-      LazyColumn(verticalArrangement=Arrangement.spacedBy(8.dp)){items((0 until topics.length()).toList()){i->val t=topics.optJSONObject(i);Tile("▣",t?.optString("title","Тема "+(i+1))?:"Тема "+(i+1),"Учебный материал",Color.White){tab="Карточки"}}}
+     "Темы" -> if(topicIndex>=0) {
+      val t=topics.optJSONObject(topicIndex)
+      val lesson=lessons.optJSONObject(topicIndex)
+      Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+       TextButton(onClick={topicIndex=-1}){Text("← Все темы")}
+       Heading("Тема " + (topicIndex+1),t?.optString("title") ?: "Материал")
+       Info("Кратко",lesson?.optString("summary") ?: "Для этой темы пока нет конспекта.")
+       val points=lesson?.optJSONArray("keyPoints") ?: JSONArray()
+       if(points.length()>0) {
+        Text("Главное",fontWeight=FontWeight.Bold,color=Dark,fontSize=18.sp)
+        for(i in 0 until points.length()) Info("Пункт " + (i+1),points.optString(i))
+       }
+       Button(onClick={tab="Карточки";card=topicIndex%drugCatalog.size;reveal=false},modifier=Modifier.fillMaxWidth()){Text("Перейти к карточкам препаратов")}
+      }
+     } else Column(Modifier.fillMaxSize().padding(16.dp)) {
+      Heading("Предметы","Учебная программа и короткие конспекты")
+      LazyColumn(verticalArrangement=Arrangement.spacedBy(8.dp)){items((0 until topics.length()).toList()){i->val t=topics.optJSONObject(i);Tile("▣",t?.optString("title","Тема "+(i+1))?:"Тема "+(i+1),"Тема " + (i+1) + " · открыть конспект",Color.White){topicIndex=i}}}
+     }
+     "Практика" -> if(practiceIndex>=0) {
+      val task=practice.optJSONObject(practiceIndex)
+      val forms=listOf("solution" to "Раствор","tablet" to "Таблетки","capsule" to "Капсулы","ointment" to "Мазь","powder" to "Порошок","suspension" to "Суспензия")
+      Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+       TextButton(onClick={practiceIndex=-1;practiceAnswer=-1;practiceChecked=false}){Text("← Все задания")}
+       Heading("Задание " + (task?.optInt("number") ?: practiceIndex+1),"Определи лекарственную форму")
+       Info("Условие",task?.optString("sourceText") ?: "Практическое задание")
+       forms.forEachIndexed { i,p ->
+        Row(Modifier.fillMaxWidth().background(if(practiceAnswer==i)Color(0xFFEDE4FF) else Color.White,RoundedCornerShape(12.dp)).clickable(enabled=!practiceChecked){practiceAnswer=i}.padding(14.dp),verticalAlignment=Alignment.CenterVertically) { Text(if(practiceAnswer==i)"●  " else "○  ",color=Purple);Text(p.second,color=Dark,fontWeight=FontWeight.Medium) }
+       }
+       if(!practiceChecked) Button(onClick={practiceChecked=true},enabled=practiceAnswer>=0,modifier=Modifier.fillMaxWidth()){Text("Проверить")}
+       else {
+        val correct=forms.indexOfFirst{it.first==task?.optString("form")}
+        Info(if(practiceAnswer==correct)"Верно!" else "Разбор ответа","Правильная форма: " + (task?.optString("formLabel") ?: "не указана") + ". " + (task?.optString("notice") ?: ""))
+        Button(onClick={practiceIndex=-1;practiceAnswer=-1;practiceChecked=false},modifier=Modifier.fillMaxWidth()){Text("К списку заданий")}
+       }
+      }
+     } else Column(Modifier.fillMaxSize().padding(16.dp)) {
+      Heading("Практика","Учебные упражнения на распознавание лекарственных форм")
+      LazyColumn(verticalArrangement=Arrangement.spacedBy(8.dp)){items((0 until practice.length()).toList()){i->val p=practice.optJSONObject(i);Tile("✎","Задание " + (p?.optInt("number") ?: i+1),p?.optString("sourceText") ?: "Практическая задача",Color.White){practiceIndex=i;practiceAnswer=-1;practiceChecked=false}}}
      }
     }
    }
