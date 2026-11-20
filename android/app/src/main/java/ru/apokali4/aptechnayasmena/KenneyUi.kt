@@ -51,7 +51,7 @@ fun KenneyPanel(
             colorFilter = ColorFilter.tint(tint, BlendMode.Modulate)
         )
         Column(
-            modifier = Modifier.fillMaxWidth().padding(contentPadding),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(contentPadding),
             verticalArrangement = verticalArrangement,
             horizontalAlignment = horizontalAlignment,
             content = content
@@ -188,4 +188,17 @@ fun KenneyNavIcon(symbol: String, selected: Boolean) {
         }
         Text(symbol, color = if (selected) Color.White else KenneyPalette.purple, fontSize = 18.sp)
     }
+}
+
+@Composable
+fun KenneyTextButton(label: String, onClick: () -> Unit) {
+    Text(
+        text = label,
+        color = KenneyPalette.purple,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 10.dp)
+    )
 }
