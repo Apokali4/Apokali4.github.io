@@ -4,7 +4,7 @@ name: Build and deploy Аптечная смена
 on:
   push:
     branches:
-      - feature/aptechnaya-smena
+      - main
     paths:
       - 'aptechnaya-smena-1.0.0.zip'
       - '.github/workflows/pharmacy-pages.yml'
