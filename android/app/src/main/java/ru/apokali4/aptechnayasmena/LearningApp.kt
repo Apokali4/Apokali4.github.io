@@ -182,5 +182,5 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
  }
 }
 @Composable private fun Heading(a:String,b:String){Column(verticalArrangement=Arrangement.spacedBy(4.dp)){Text(a,fontSize=25.sp,fontWeight=FontWeight.Black,color=Dark);Text(b,color=Color.Gray,fontSize=13.sp)}}
-@Composable private fun Tile(icon:String,title:String,sub:String,color:Color,onClick:()->Unit){KenneyTile(icon,title,sub,tint=color,onClick=onClick)}
+@Composable private fun Tile(icon:String,title:String,sub:String,color:Color,onClick:()->Unit){KenneyTile(icon,title,sub,tint=KenneyPalette.panelTint,onClick=onClick)}
 @Composable private fun Info(title:String,body:String){KenneyPanel(contentPadding=PaddingValues(14.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){Text(title,color=Purple,fontWeight=FontWeight.Bold);Text(body,color=Dark,fontSize=14.sp,lineHeight=20.sp)}}
