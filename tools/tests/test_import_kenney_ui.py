@@ -2,6 +2,9 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from import_kenney_ui import destination_for, import_pack, resource_name, safe_archive_path
 
