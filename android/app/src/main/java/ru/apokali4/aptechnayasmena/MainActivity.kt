@@ -42,14 +42,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             startup.fold(
-                onSuccess = { data ->
-                    try {
-                        LearningApp(data.first, data.second, data.third)
-                    } catch (error: Exception) {
-                        android.util.Log.e("AptekaStartup", "First screen composition failed", error)
-                        StartupFailure(error)
-                    }
-                },
+                onSuccess = { data -> LearningApp(data.first, data.second, data.third) },
                 onFailure = { error ->
                     android.util.Log.e("AptekaStartup", "Startup content loading failed", error)
                     StartupFailure(error)
