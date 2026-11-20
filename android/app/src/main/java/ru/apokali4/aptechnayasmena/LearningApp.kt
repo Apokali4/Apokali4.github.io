@@ -54,7 +54,7 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
    Column(Modifier.fillMaxSize().padding(pad)) {
     Row(Modifier.fillMaxWidth().background(Dark).padding(18.dp),verticalAlignment=Alignment.CenterVertically) {
      Column(Modifier.weight(1f)) { Text("АПТЕКА ЗНАНИЙ",color=Color.White,fontWeight=FontWeight.Black,letterSpacing=1.2.sp); Text("Учись, играй, запоминай",color=Color(0xFFD9C9F5),fontSize=12.sp) }
-     Text("✿",color=Color(0xFFFFD77A),fontSize=27.sp)
+     Image(painterResource(R.drawable.pharmacist),contentDescription="Помощник",modifier=Modifier.size(46.dp),contentScale=ContentScale.Crop)
     }
     when(tab) {
      "Главная" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
