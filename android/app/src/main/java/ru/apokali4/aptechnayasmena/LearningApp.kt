@@ -20,10 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 
-private val Purple = Color(0xFF7652B8)
-private val Dark = Color(0xFF39265F)
-private val Bg = Color(0xFFF5F1FC)
-private val Mint = Color(0xFF48A994)
+private val Purple = KenneyPalette.purple
+private val Dark = KenneyPalette.purpleDark
+private val Bg = KenneyPalette.background
+private val Mint = KenneyPalette.mint
 
 @Composable
 fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSONObject) {
@@ -52,23 +52,23 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
   Scaffold(containerColor=Bg,bottomBar={
    NavigationBar(containerColor=Color.White) {
     listOf("Главная","Карточки","Играть","Препараты","Темы","Практика").forEach { t ->
-     NavigationBarItem(selected=tab==t,onClick={tab=t;drug=null;mode=false;topicIndex=-1;practiceIndex=-1},icon={Text(when(t){"Главная"->"⌂";"Карточки"->"▤";"Играть"->"✦";"Препараты"->"✚";"Темы"->"☷";else->"✎"},fontSize=19.sp)},label={Text(t,fontSize=10.sp)})
+     NavigationBarItem(selected=tab==t,onClick={tab=t;drug=null;mode=false;topicIndex=-1;practiceIndex=-1},icon={KenneyNavIcon(when(t){"Главная"->"⌂";"Карточки"->"▤";"Играть"->"✦";"Препараты"->"✚";"Темы"->"☷";else->"✎"},tab==t)},label={Text(t,fontSize=10.sp)})
     }
    }
   }) { pad ->
    Column(Modifier.fillMaxSize().padding(pad)) {
-    Row(Modifier.fillMaxWidth().background(Dark).padding(18.dp),verticalAlignment=Alignment.CenterVertically) {
+    KenneyPanel(modifier=Modifier.fillMaxWidth(),tint=Dark,contentPadding=PaddingValues(14.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {\n    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
      Column(Modifier.weight(1f)) { Text("АПТЕКА ЗНАНИЙ",color=Color.White,fontWeight=FontWeight.Black,letterSpacing=1.2.sp); Text("Учись, играй, запоминай",color=Color(0xFFD9C9F5),fontSize=12.sp) }
      Image(painterResource(R.drawable.pharmacist),contentDescription="Помощник",modifier=Modifier.size(46.dp),contentScale=ContentScale.Crop)
     }
     when(tab) {
      "Главная" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-      Row(Modifier.fillMaxWidth().background(Dark,RoundedCornerShape(22.dp)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
+      KenneyPanel(modifier=Modifier.fillMaxWidth(),tint=Dark,contentPadding=PaddingValues(12.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {\n       Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
        Image(painterResource(R.drawable.pharmacist),contentDescription="Фармацевт-помощник",modifier=Modifier.width(116.dp).height(178.dp),contentScale=ContentScale.Crop)
        Column(Modifier.weight(1f).padding(8.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
         Text("Пять минут —\nи ты знаешь больше!",color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,lineHeight=27.sp)
         Text("Карточки, вопросы и понятные объяснения.",color=Color(0xFFE3D8F8),fontSize=13.sp)
-        Button(onClick={tab="Играть";mode=true;qi=0;selected=-1;answered=false},colors=ButtonDefaults.buttonColors(containerColor=Mint)){Text("Начать игру →")}
+        KenneyButton("Начать игру →",onClick={tab="Играть";mode=true;qi=0;selected=-1;answered=false})
        }
       }
       Text("Чем займёмся?",fontSize=21.sp,fontWeight=FontWeight.Bold)
@@ -81,7 +81,7 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
      "Карточки" -> Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
       Heading("Карточки","Нажми на карточку, чтобы увидеть ответ")
       val d=drugCatalog[card%drugCatalog.size]
-      Column(Modifier.fillMaxWidth().weight(1f).background(Color.White,RoundedCornerShape(24.dp)).clickable{reveal=!reveal}.padding(22.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
+      KenneyPanel(modifier=Modifier.fillMaxWidth().weight(1f).clickable{reveal=!reveal},contentPadding=PaddingValues(22.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
        Text(if(reveal)"ОТВЕТ" else "ВОПРОС",color=Purple,fontWeight=FontWeight.Bold)
        Spacer(Modifier.height(20.dp))
        Text(if(reveal)d.description else d.name,fontSize=24.sp,fontWeight=FontWeight.Bold,color=Dark)
@@ -92,8 +92,8 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
       }
       Text((card+1).toString()+" из "+drugCatalog.size,modifier=Modifier.align(Alignment.CenterHorizontally),color=Color.Gray)
       Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-       OutlinedButton(onClick={card=(card-1+drugCatalog.size)%drugCatalog.size;reveal=false},modifier=Modifier.weight(1f)){Text("Назад")}
-       Button(onClick={card=(card+1)%drugCatalog.size;reveal=false},modifier=Modifier.weight(1f)){Text("Следующая")}
+       KenneyButton("Назад",modifier=Modifier.weight(1f),outlined=true,onClick={card=(card-1+drugCatalog.size)%drugCatalog.size;reveal=false})
+       KenneyButton("Следующая",modifier=Modifier.weight(1f),onClick={card=(card+1)%drugCatalog.size;reveal=false})
       }
      }
      "Играть" -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -103,19 +103,19 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
        Tile("✓","Правда или миф","Разбирай заблуждения",Color(0xFFE0F5EF)){mode=true;qi=1;selected=-1;answered=false}
        Tile("⌕","Быстрый опрос","Проверь, что запомнил",Color(0xFFFFEBD9)){mode=true;qi=2;selected=-1;answered=false}
       } else {
-       TextButton(onClick={mode=false}){Text("← Все игры")}
+       KenneyTextButton("← Все игры"){mode=false}
        Heading("Викторина","Вопрос "+(qi+1))
-       Column(Modifier.fillMaxWidth().background(Color.White,RoundedCornerShape(20.dp)).padding(18.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+       KenneyPanel(modifier=Modifier.fillMaxWidth(),contentPadding=PaddingValues(18.dp)) {
         Text(q.first.first,fontSize=20.sp,fontWeight=FontWeight.Bold)
         q.first.second.forEachIndexed { i,opt ->
          val bg=when{answered&&i==q.first.third->Color(0xFFDDF5E8);answered&&selected==i->Color(0xFFFFE1E1);selected==i->Color(0xFFEDE4FF);else->Bg}
          Row(Modifier.fillMaxWidth().background(bg,RoundedCornerShape(12.dp)).clickable(enabled=!answered){selected=i}.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Text(if(answered&&i==q.first.third)"✓  " else "○  ",color=Mint);Text(opt,color=Dark)}
         }
-        if(!answered) Button(onClick={answered=true},enabled=selected>=0,modifier=Modifier.fillMaxWidth()){Text("Проверить")}
+        if(!answered) KenneyButton("Проверить",enabled=selected>=0,onClick={answered=true})
         else {
          Text(if(selected==q.first.third)"Верно! Отличная работа." else "Не совсем. Вот что важно запомнить:",color=if(selected==q.first.third)Mint else Color(0xFFB34F56),fontWeight=FontWeight.Bold)
          Text(q.second)
-         Button(onClick={qi++;selected=-1;answered=false},modifier=Modifier.fillMaxWidth()){Text("Дальше")}
+         KenneyButton("Дальше",onClick={qi++;selected=-1;answered=false})
         }
        }
       }
@@ -123,7 +123,7 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
      "Препараты" -> if(drug!=null) {
       val d=drug!!
       Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
-       TextButton(onClick={drug=null}){Text("← Каталог")}
+       KenneyTextButton("← Каталог"){drug=null}
        Heading(d.name,d.inn)
        Info("Описание",d.description);Info("Группа",d.group);Info("Показания",d.indications);Info("Противопоказания",d.contraindications);Info("Побочные эффекты",d.adverseEffects);Info("Фармакодинамика",d.pharmacodynamics);Info("Фармакокинетика",d.pharmacokinetics);Info("Формы выпуска",d.forms);Info("Источник",d.source+"\n"+d.sourceUrl)
        Text("Учебная информация. Всегда сверяйся с актуальной инструкцией конкретного препарата.",color=Color.Gray,fontSize=12.sp)
@@ -137,7 +137,7 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
       val t=topics.optJSONObject(topicIndex)
       val lesson=lessons.optJSONObject(topicIndex)
       Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-       TextButton(onClick={topicIndex=-1}){Text("← Все темы")}
+       KenneyTextButton("← Все темы"){topicIndex=-1}
        Heading("Тема " + (topicIndex+1),t?.optString("title") ?: "Материал")
        Info("Кратко",lesson?.optString("summary") ?: "Для этой темы пока нет конспекта.")
        val points=lesson?.optJSONArray("keyPoints") ?: JSONArray()
@@ -145,7 +145,7 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
         Text("Главное",fontWeight=FontWeight.Bold,color=Dark,fontSize=18.sp)
         for(i in 0 until points.length()) Info("Пункт " + (i+1),points.optString(i))
        }
-       Button(onClick={tab="Карточки";card=topicIndex%drugCatalog.size;reveal=false},modifier=Modifier.fillMaxWidth()){Text("Перейти к карточкам препаратов")}
+       KenneyButton("Перейти к карточкам препаратов",onClick={tab="Карточки";card=topicIndex%drugCatalog.size;reveal=false})
       }
      } else Column(Modifier.fillMaxSize().padding(16.dp)) {
       Heading("Предметы","Учебная программа и короткие конспекты")
@@ -155,17 +155,17 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
       val task=practice.optJSONObject(practiceIndex)
       val forms=listOf("solution" to "Раствор","tablet" to "Таблетки","capsule" to "Капсулы","ointment" to "Мазь","powder" to "Порошок","suspension" to "Суспензия")
       Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-       TextButton(onClick={practiceIndex=-1;practiceAnswer=-1;practiceChecked=false}){Text("← Все задания")}
+       KenneyTextButton("← Все задания"){practiceIndex=-1;practiceAnswer=-1;practiceChecked=false}
        Heading("Задание " + (task?.optInt("number") ?: practiceIndex+1),"Определи лекарственную форму")
        Info("Условие",task?.optString("sourceText") ?: "Практическое задание")
        forms.forEachIndexed { i,p ->
-        Row(Modifier.fillMaxWidth().background(if(practiceAnswer==i)Color(0xFFEDE4FF) else Color.White,RoundedCornerShape(12.dp)).clickable(enabled=!practiceChecked){practiceAnswer=i}.padding(14.dp),verticalAlignment=Alignment.CenterVertically) { Text(if(practiceAnswer==i)"●  " else "○  ",color=Purple);Text(p.second,color=Dark,fontWeight=FontWeight.Medium) }
+        KenneyChoice(p.second,practiceAnswer==i,enabled=!practiceChecked,onClick={practiceAnswer=i})
        }
-       if(!practiceChecked) Button(onClick={practiceChecked=true},enabled=practiceAnswer>=0,modifier=Modifier.fillMaxWidth()){Text("Проверить")}
+       if(!practiceChecked) KenneyButton("Проверить",enabled=practiceAnswer>=0,onClick={practiceChecked=true})
        else {
         val correct=forms.indexOfFirst{it.first==task?.optString("form")}
         Info(if(practiceAnswer==correct)"Верно!" else "Разбор ответа","Правильная форма: " + (task?.optString("formLabel") ?: "не указана") + ". " + (task?.optString("notice") ?: ""))
-        Button(onClick={practiceIndex=-1;practiceAnswer=-1;practiceChecked=false},modifier=Modifier.fillMaxWidth()){Text("К списку заданий")}
+        KenneyButton("К списку заданий",onClick={practiceIndex=-1;practiceAnswer=-1;practiceChecked=false})
        }
       }
      } else Column(Modifier.fillMaxSize().padding(16.dp)) {
@@ -178,5 +178,5 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
  }
 }
 @Composable private fun Heading(a:String,b:String){Column(verticalArrangement=Arrangement.spacedBy(4.dp)){Text(a,fontSize=25.sp,fontWeight=FontWeight.Black,color=Dark);Text(b,color=Color.Gray,fontSize=13.sp)}}
-@Composable private fun Tile(icon:String,title:String,sub:String,color:Color,onClick:()->Unit){Row(Modifier.fillMaxWidth().background(color,RoundedCornerShape(17.dp)).clickable{onClick()}.padding(15.dp),verticalAlignment=Alignment.CenterVertically){Text(icon,color=Purple,fontSize=25.sp,modifier=Modifier.width(42.dp));Column(Modifier.weight(1f)){Text(title,color=Dark,fontWeight=FontWeight.Bold,fontSize=17.sp);Text(sub,color=Color.Gray,fontSize=12.sp)};Text("›",color=Purple,fontSize=24.sp)}}
-@Composable private fun Info(title:String,body:String){Column(Modifier.fillMaxWidth().background(Color.White,RoundedCornerShape(14.dp)).padding(14.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){Text(title,color=Purple,fontWeight=FontWeight.Bold);Text(body,color=Dark,fontSize=14.sp,lineHeight=20.sp)}}
+@Composable private fun Tile(icon:String,title:String,sub:String,color:Color,onClick:()->Unit){KenneyTile(icon,title,sub,tint=color,onClick=onClick)}
+@Composable private fun Info(title:String,body:String){KenneyPanel(contentPadding=PaddingValues(14.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){Text(title,color=Purple,fontWeight=FontWeight.Bold);Text(body,color=Dark,fontSize=14.sp,lineHeight=20.sp)}}
