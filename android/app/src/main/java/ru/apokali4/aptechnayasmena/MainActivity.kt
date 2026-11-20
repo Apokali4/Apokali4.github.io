@@ -319,7 +319,7 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
     }
 }
 @Composable private fun DrugSection(title: String, body: String) {
-    Column(Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(16.dp)).padding(15.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    KenneyPanel(contentPadding = PaddingValues(15.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title.uppercase(), color = Green, fontWeight = FontWeight.Bold, fontSize = 12.sp)
         Text(body, color = Ink, lineHeight = 21.sp)
     }
