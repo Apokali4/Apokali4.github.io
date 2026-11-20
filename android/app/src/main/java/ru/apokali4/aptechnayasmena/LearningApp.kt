@@ -81,7 +81,7 @@ fun LearningApp(lessons: JSONArray, practice: JSONArray, syllabus: org.json.JSON
      "Карточки" -> Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
       Heading("Карточки","Нажми на карточку, чтобы увидеть ответ")
       val d=drugCatalog[card%drugCatalog.size]
-      KenneyPanel(modifier=Modifier.fillMaxWidth().weight(1f).clickable{reveal=!reveal},contentPadding=PaddingValues(22.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) {
+      KenneyPanel(modifier=Modifier.fillMaxWidth().weight(1f).clickable{reveal=!reveal},contentPadding=PaddingValues(22.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally,fillContentHeight=true) {
        Text(if(reveal)"ОТВЕТ" else "ВОПРОС",color=Purple,fontWeight=FontWeight.Bold)
        Spacer(Modifier.height(20.dp))
        Text(if(reveal)d.description else d.name,fontSize=24.sp,fontWeight=FontWeight.Bold,color=Dark)
