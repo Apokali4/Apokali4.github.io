@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
         val lessons = JSONArray(assets.open("lessons.json").bufferedReader().use { it.readText() })
         val practice = JSONArray(assets.open("practice.json").bufferedReader().use { it.readText() })
         val syllabus = JSONObject(assets.open("syllabus.json").bufferedReader().use { it.readText() })
-        setContent { PharmacyGame(lessons, practice, syllabus) }
+        setContent { LearningApp(lessons, practice, syllabus) }
     }
 }
 
