@@ -1,9 +1,7 @@
-# Аптечная смена для Android
+# Аптечная смена — нативная Android-версия
 
-APK собирается в GitHub Actions. Веб-ресурсы игры упаковываются внутрь APK и работают локально, без сервера и интернета после установки. Android-оболочка использует WebViewAssetLoader для безопасной загрузки локальных файлов.
+Приложение реализовано на Kotlin и Jetpack Compose. WebView и загрузка HTML/JS в Android-приложении не используются.
 
-Сборка: `gradle assembleDebug`. Результат: `app/build/outputs/apk/debug/app-debug.apk`.
+Банки `lessons.json`, `practice.json`, `syllabus.json` берутся из исходного архива игры и включаются в assets при CI-сборке. Прогресс сохраняется локально через SharedPreferences; интернет для работы игры не требуется.
 
-SDK setup uses explicit Android 35 platform and build-tools packages in CI.
-
-Build configuration updated for matching Java/Kotlin 17 bytecode targets.
+Сборка: `gradle testDebugUnitTest assembleDebug`.
