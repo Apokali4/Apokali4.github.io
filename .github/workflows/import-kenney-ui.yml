@@ -1,0 +1,108 @@
+name: Import Kenney UI Pack and build Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/import-kenney-ui.yml'
+      - 'tools/import_kenney_ui.py'
+      - 'tools/tests/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kenney-ui-import-main
+  cancel-in-progress: false
+
+jobs:
+  import-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify importer tests
+        run: python -m unittest discover -s tools/tests -v
+
+      - name: Download original Kenney UI Pack
+        run: |
+          mkdir -p .asset-download
+          curl --fail --location --retry 3 --retry-all-errors \
+            https://opengameart.org/sites/default/files/kenney_ui-pack.zip \
+            --output .asset-download/kenney_ui-pack.zip
+          echo "a8a14a234911eb648c062622915c93e79e94e97cb7f9f375a70f6617f1174318  .asset-download/kenney_ui-pack.zip" | sha256sum --check
+          test "$(stat -c%s .asset-download/kenney_ui-pack.zip)" = "1229750"
+
+      - name: Install original assets into Android resources
+        run: |
+          python tools/import_kenney_ui.py .asset-download/kenney_ui-pack.zip --repo-root .
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("android/app/src/main/assets/kenney-ui-pack/asset-index.json")
+          data = json.loads(p.read_text(encoding="utf-8"))
+          counts = {}
+          for item in data["files"]:
+              counts[item["type"]] = counts.get(item["type"], 0) + 1
+          print("Imported original Kenney UI Pack:", json.dumps(counts, ensure_ascii=False))
+          if not any(item["type"] == "drawable-nodpi" for item in data["files"]):
+              raise SystemExit("The archive did not contain any Android-compatible images.")
+          PY
+
+      - name: Commit imported source and Android resources to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android/assets/kenney android/app/src/main/res/drawable-nodpi android/app/src/main/res/font android/app/src/main/res/raw android/app/src/main/assets/kenney-ui-pack
+          if git diff --cached --quiet; then
+            echo "No asset changes to commit."
+          else
+            git commit -m "Import original Kenney UI Pack assets"
+            git push origin HEAD:main
+          fi
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Add source lesson banks to native app assets
+        run: |
+          mkdir -p android/app/src/main/assets
+          unzip -q aptechnaya-smena-1.0.0.zip -d extracted
+          cp extracted/aptechnaya-smena/src/data/lessons.json android/app/src/main/assets/lessons.json
+          cp extracted/aptechnaya-smena/src/data/practice.json android/app/src/main/assets/practice.json
+          cp extracted/aptechnaya-smena/src/data/syllabus.json android/app/src/main/assets/syllabus.json
+
+      - name: Run Android unit tests
+        working-directory: android
+        run: gradle --no-daemon testDebugUnitTest
+
+      - name: Assemble Android APK
+        working-directory: android
+        run: gradle --no-daemon assembleDebug
+
+      - name: Upload Android APK and asset manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: aptechnaya-smena-kenney-ui-android
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/src/main/assets/kenney-ui-pack/asset-index.json
+          if-no-files-found: error
+          retention-days: 90
