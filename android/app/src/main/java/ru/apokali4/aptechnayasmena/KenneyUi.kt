@@ -69,6 +69,7 @@ fun KenneyButton(
 ) {
     Box(
         modifier = modifier
+            .fillMaxWidth()
             .heightIn(min = 48.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
