@@ -123,6 +123,7 @@ private fun PharmacyGame(lessons: JSONArray, practice: JSONArray, syllabus: JSON
                                 ActionButton("→", playerX < 4, Modifier.weight(1f)) { playerX = (playerX + 1).coerceAtMost(4) }
                             }
                         }
+                        GameShiftPanel(onReward = { award(it, true) })
                         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                             Stat("${studied.size}/72", "тем изучено", Modifier.weight(1f))
                             Stat("$correct", "верных ответов", Modifier.weight(1f))
